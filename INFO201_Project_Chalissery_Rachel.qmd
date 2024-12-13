@@ -1,0 +1,195 @@
+---
+title: "INFO 201 Final Project: The effects of the fall of communism on the Olympic performance of Post-Soviet nations"
+author: "Rachel Chalissery, Nooria Hiyeri"
+date: today
+format: 
+  html:
+    echo: true
+    embed-resources: true
+---
+
+
+# Narrative
+
+## Introduction
+
+The dissolution of the Soviet Union in 1991 marked a seismic geopolitical shift, not only altering global political landscapes but also significantly impacting cultural and societal arenas, including sports. Among the many domains affected, the Olympic performance of former Soviet republics presents a unique lens to explore the interplay between economic development, political identity, and athletic prowess. This project investigates how the collapse of communism influenced Olympic success among post-Soviet nations, utilizing Olympic medal data and GDP statistics.
+
+By examining medal counts and economic indicators from 1995, this analysis aims to uncover patterns in performance disparities between these newly independent nations and their Soviet predecessor. This study builds upon previous research on economic development's influence on sports performance, such as studies by Bernard & Busse (2004) on GDP and Olympic success, and political identity's role in national representation in sports, as highlighted by Bairner (2001).
+
+## Description of the Data and Methodology
+
+### Data Sources:
+
+1. Olympic Medal Data: Sourced from an official Olympic dataset, this data contains information on medal counts, country codes, and event years. The dataset provides a historical snapshot of athletic performance by both the USSR and its successor states.
+2. GDP Data: Derived from the United Nations Statistics Division, the GDP dataset includes economic performance metrics, specifically GDP in current prices (millions of US dollars) for Soviet successor states in 1995. GDP serves as a proxy for economic recovery post-USSR dissolution. 
+
+### Potential Technical and Ethical Limitations:
+
+1. Data Completeness: Olympic medal data may not account for non-medal-winning participants, thus offering a limited view of overall athletic engagement.
+2. Temporal Bias: GDP data from 1995 may not capture long-term economic recovery patterns affecting Olympic performance.
+3. Ethical Considerations: While aggregate country-level data minimizes privacy concerns, ethical questions arise when interpreting the impact of economic hardship on individual athletes.
+
+## Findings and Patterns
+
+### Olympic Medal Trends:
+
+The USSR consistently dominated the Olympics, leveraging centralized state support and a unified identity to achieve significant success. After 1991, post-Soviet nations, such as Russia, continued to excel, retaining their legacy. However, smaller nations, such as Moldova and Tajikistan, experienced reduced medal counts, highlighting disparities in resource allocation and institutional support.
+
+### Economic Influence:
+
+Analysis of 1995 GDP data revealed significant economic disparities among post-Soviet nations. Russia and Kazakhstan, with higher GDP levels, showed stronger Olympic performance, aligning with the hypothesis that economic stability supports sports development. Conversely, nations like Moldova, with lower GDP, faced challenges maintaining pre-1991 levels of international competitiveness.
+
+### Visualization Highlights:
+
+A line chart displays the USSR's medal dominance over time before its dissolution in 1991, contrasted with a bar chart displaying the fragmented performance of successor states.
+A geographic heatmap visualization illustrated GDP distribution among post-Soviet nations, highlighting economic inequality's correlation with medal distribution.
+
+## Comparison to Existing Literature
+
+The findings align with Bernard & Busse (2004), who concluded that GDP is a significant predictor of Olympic success. Wealthier nations can invest in training infrastructure and athlete development, providing a competitive edge. Additionally, Bairner (2001) discusses how national identity shapes international sports performance, a dynamic observed in the varied trajectories of post-Soviet countries. For example, Russia retained its strong identity and infrastructure, while smaller nations grappled with establishing themselves on the global stage.
+
+## Conclusions
+
+This analysis highlights the enduring legacy of the Soviet sports system while underscoring the challenges faced by smaller post-Soviet nations. The transition from a centralized model to independent states introduced disparities in resources, affecting their Olympic presence. Furthermore, economic recovery appears to be a key factor influencing athletic success, emphasizing the interconnectedness of national prosperity and sports performance.
+
+## Future Work
+
+To deepen this analysis, future research could:
+
+1. Extend the timeframe to include GDP and Olympic data from 1991-2020 to capture long-term trends.
+2. Investigate the role of international collaborations and foreign training programs in post-Soviet sports recovery.
+3. Explore individual athletes’ narratives to better understand the human impact of political and economic transitions.
+
+## References
+
+1. Bernard, A. B., & Busse, M. R. (2004). "Who wins the Olympic Games: Economic resources and medal totals." Review of Economics and Statistics.
+2. Bairner, A. (2001). Sport, nationalism, and globalization: European and North American perspectives. SUNY Press.
+3. United Nations Statistics Division. "GDP and GDP Per Capita Dataset." UN Data.
+
+## Load Libraries
+
+```{r}
+library(tidyverse)
+```
+
+## Load Data
+### Kaggle Dataset -- Olympic Games Medals (for years 1986–2018):
+Under this dataset, there is in depth information for Olympic medal counts with countries and athletes from 1986 to 2018, and it covers a variety of events, sports, and games editions. This provides insight into the overall performance trends over a vast amount of time in total. 
+```{r}
+olympic_data <- read.csv("olympic_medals.csv")
+olympic_data |> glimpse()
+```
+### UN Dataset -- Statistical Yearbook GDP:
+As for this dataset, it gives detailed economic data regarding GDP and additionally GDP per capita for countries across the world. All in all, it supports the big picture analyses of economic trends and also several comparisons surrounding various regions and time periods too.
+```{r}
+gdp_data <- read.csv("SYB66_230_202310_GDP and GDP Per Capita.csv")
+gdp_data |>
+  glimpse()
+```
+
+## USSR in the Olympics
+### Filtering the Olympic Dataset
+
+Tidying up and filtering the dataset so it shows how many medals the USSR won in the Olympics each year
+```{r}
+filtered_olympic_data <- olympic_data |> 
+  mutate(year = as.numeric(sub(".*-(\\d{4})", "\\1", slug_game))) |>
+  arrange(year) |>
+  filter(country_3_letter_code == "URS") |>
+  group_by(slug_game, year) |>
+  summarize(medal_count = n(), .groups = 'drop') 
+filtered_olympic_data |> sample_n(10)
+```
+
+### Visualizing the USSRs Olympic perfomance
+
+```{r}
+#| alt-text: "This line chart titled, “Medals Won by the USSR at Each Olympic Game” shows the overall number of medals that the USSR won at each Olympic Game from the year 1952 to 1988 (which highlights the growing/consistent medal count over the years, symbolized through red dots marking each data point and a blue line that connects them together)."
+
+ggplot(filtered_olympic_data, aes(x = year, y = medal_count)) +
+  geom_line(color = "blue") +           
+  geom_point(color = "red", size = 2) + 
+  labs(title = "Medals Won by the USSR at Each Olympic Game",
+       x = "Year",
+       y = "Number of Medals Won") +
+  theme_minimal() +
+  scale_x_continuous(breaks = filtered_olympic_data$year) 
+```
+
+## GDP of Post-Soviet Nations in 1995
+### Tidying the GDP Dataset 
+
+Tidying and Filtering the GDP dataset to show the GDP of post-soviet countires in 1995 (around when the 1996 and 1998 Olympic games occured)
+```{r}
+soviet_union_countries <- c(
+  "Armenia", "Azerbaijan", "Belarus", "Estonia", "Georgia",
+  "Kazakhstan", "Kyrgyzstan", "Latvia", "Lithuania", "Moldova",
+  "Russia", "Tajikistan", "Turkmenistan", "Ukraine", "Uzbekistan"
+)
+gdp_data$Value <- as.numeric(gsub(",", "", gdp_data$Value))
+
+gdp_data$Region <- recode(gdp_data$Region,
+                          "Russian Federation" = "Russia",
+                          "Republic of Moldova" = "Moldova")
+filtered_gdp <- gdp_data |>
+  filter(Year == 1995) |>
+  filter(Region %in% soviet_union_countries) |>
+  filter(Series == "GDP in current prices (millions of US dollars)") |>
+  rename(region = Region) |>
+  mutate(Value = Value / 1000)
+  
+filtered_gdp |> sample_n(15)
+```
+
+### Visualizing the Former Soviet Nations' GDP in current prices
+
+```{r}
+#| echo: false
+#| alt-text: "This heat map titled “GDP of Former Soviet Union Countries (1995)”, shows their GDP through the shaded-in various shades of blue (countries like Russia and Kazakhstan are darker blue, which indicates higher GDP, while on the other hand, the lighter shades, like Moldova for example, represent the lower GDP levels)."
+
+world_map <- map_data("world")
+
+soviet_union_map <- world_map |>
+  filter(region %in% soviet_union_countries)
+
+map_with_gdp <- soviet_union_map |>
+  left_join(filtered_gdp, by = "region")
+
+ggplot(map_with_gdp, aes(x = long, y = lat, group = group, fill = Value)) +
+  geom_polygon(color = "black") +  # Add borders
+  scale_fill_gradient(low = "lightblue", high = "darkblue", name = "GDP in current prices (billions of US Dollars)") +
+  ggtitle("GDP of Former Soviet Union Countries (1995)") +
+  theme_minimal() +
+  coord_quickmap()
+```
+
+## Post-Soviet Nations performance in the 1996 and 1998 Olympics
+### Tidying and Filtering the Olympic Dataset
+
+Tidying and filtering the Olympic dataset to show the post-soviet nations' performance in those 2 Olympic games
+```{r}
+post_soviet_name_list = c("Russian Federation", "Estonia", "Latvia", "Lithuania", "Republic of Moldova", "Belarus", "Armenia", "Georgia", "Kazakhstan", "Kyrgyzstan", "Ukraine", "Uzbekistan", "Azerbaijan", "Tajikistan", "Turkmenistan")
+post_soviet_olympic_data <- olympic_data |>
+  filter(country_name %in% post_soviet_name_list) |>
+  filter(slug_game == "atlanta-1996" | slug_game == "nagano-1998") |>
+  ungroup() |>
+  group_by(country_name) |>
+  summarize(medal_count = n()) |>
+  complete(country_name = post_soviet_name_list, fill = list(medal_count = 0))
+post_soviet_olympic_data |> sample_n(11) 
+```
+
+### Visualizing the Post-Soviet Nations' Olympic Performance
+
+```{r}
+#| alt-text: This bar chart titled, “Medals Won by Post-Soviet Countries in 1996 and 1998 Olympics”, shows the comparison of the Olympic medal counts of the years listed (the bar for Russia is the tallest, showing its higher ground, meanwhile countries like Moldova and Tajikistan have shorter bars, which reflects fewer or even no medals).
+
+ggplot(post_soviet_olympic_data, aes(x = country_name, y = medal_count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Medals won by each Post-Soviet country at the 1996 and 1998 Olympic games",
+       x = "Country",
+       y = "Number of Medals Won") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
